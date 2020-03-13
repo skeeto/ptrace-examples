@@ -35,12 +35,14 @@ main(int argc, char **argv)
             FATAL("%s", strerror(errno));
         case 0:  /* child */
             ptrace(PTRACE_TRACEME, 0, 0, 0);
+            /* Because we're now a tracee, execvp will block until the parent
+             * attaches and allows us to continue. */
             execvp(argv[1], argv + 1);
             FATAL("%s", strerror(errno));
     }
 
     /* parent */
-    waitpid(pid, 0, 0); // sync with PTRACE_TRACEME
+    waitpid(pid, 0, 0); // sync with execvp
     ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_EXITKILL);
 
     for (;;) {
