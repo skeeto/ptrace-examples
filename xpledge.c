@@ -126,7 +126,8 @@ main(int argc, char **argv)
         /* Special handling per system call (exit) */
         switch (regs.orig_rax) {
             case -1:
-                if (ptrace(PTRACE_POKEUSER, pid, RAX * 8, -EPERM) == -1)
+                regs.rax = -EPERM;
+                if (ptrace(PTRACE_SETREGS, pid, 0, &regs) == -1)
                     FATAL("%s", strerror(errno));
                 break;
             case SYS_xpledge:
