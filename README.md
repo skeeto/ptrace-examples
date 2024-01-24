@@ -22,4 +22,6 @@ fread("/dev/urandom")[2], x=2897060695
 fread("/dev/urandom")[1], x=2685374535
 ```
 
+See also https://github.com/phucvin/test-virtualization/blob/main/ptrace02/notes.md
+
 [full]: http://nullprogram.com/blog/2018/06/23/
