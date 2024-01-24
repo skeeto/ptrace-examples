@@ -131,7 +131,8 @@ main(int argc, char **argv)
                     FATAL("%s", strerror(errno));
                 break;
             case SYS_xpledge:
-                if (ptrace(PTRACE_POKEUSER, pid, RAX * 8, 0) == -1)
+                regs.rax = 0;
+                if (ptrace(PTRACE_SETREGS, pid, 0, &regs) == -1)
                     FATAL("%s", strerror(errno));
                 break;
         }
