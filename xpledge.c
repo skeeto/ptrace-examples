@@ -65,6 +65,75 @@ set_xpledge(int kinds)
     return 0;
 }
 
+const int long_size = sizeof(long);
+void getdata(pid_t child, long addr,
+             void *str, int len)
+{   void *laddr;
+    int i, j;
+    union u {
+            long val;
+            void* chars[long_size];
+    }data;
+    i = 0;
+    j = len / long_size;
+    laddr = str;
+    while(i < j) {
+        data.val = ptrace(PTRACE_PEEKDATA,
+                          child, addr + i * 4,
+                          NULL);
+        memcpy(laddr, data.chars, long_size);
+        ++i;
+        laddr += long_size;
+    }
+    j = len % long_size;
+    if(j != 0) {
+        data.val = ptrace(PTRACE_PEEKDATA,
+                          child, addr + i * 4,
+                          NULL);
+        memcpy(laddr, data.chars, j);
+    }
+}
+void putdata(pid_t child, long addr,
+             void *str, int len)
+{   void *laddr;
+    int i, j;
+    union u {
+            long val;
+            void* chars[long_size];
+    }data;
+    i = 0;
+    j = len / long_size;
+    laddr = str;
+    while(i < j) {
+        memcpy(data.chars, laddr, long_size);
+        ptrace(PTRACE_POKEDATA, child,
+               addr + i * 4, data.val);
+        ++i;
+        laddr += long_size;
+    }
+    j = len % long_size;
+    if(j != 0) {
+        memcpy(data.chars, laddr, j);
+        ptrace(PTRACE_POKEDATA, child,
+               addr + i * 4, data.val);
+    }
+}
+
+static int
+handle_aux_magic01(pid_t pid, struct user_regs_struct regs) {
+    long arg1_raw = regs.rdi;
+    long arg2_raw = regs.rsi;
+    struct aux_magic01a a;
+    struct aux_magic01b b;
+    getdata(pid, arg1_raw, &a, sizeof(a));
+    getdata(pid, arg2_raw, &b, sizeof(b));
+    if (a.y != b.y) return -EINVAL;
+    a.xplusy = a.x + a.y;
+    b.yminusz = b.y - b.z;
+    putdata(pid, arg1_raw, &a, sizeof(a));
+    putdata(pid, arg2_raw, &b, sizeof(b));
+}
+
 int
 main(int argc, char **argv)
 {
@@ -113,7 +182,10 @@ main(int argc, char **argv)
             case SYS_exit_group:
                 exit(regs.rdi);
             case SYS_xpledge:
-                set_xpledge(regs.rdi);
+                regs.rax = set_xpledge(regs.rdi);
+                break;
+            case SYS_aux_magic01:
+                regs.rax = handle_aux_magic01(pid, regs);
                 break;
         }
 
@@ -131,7 +203,7 @@ main(int argc, char **argv)
                     FATAL("%s", strerror(errno));
                 break;
             case SYS_xpledge:
-                regs.rax = 0;
+            case SYS_aux_magic01:
                 if (ptrace(PTRACE_SETREGS, pid, 0, &regs) == -1)
                     FATAL("%s", strerror(errno));
                 break;

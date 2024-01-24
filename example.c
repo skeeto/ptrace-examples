@@ -7,6 +7,12 @@
 int
 main(void)
 {
+    // Test aux_magic syscalls
+    struct aux_magic01a m01a = {.x=1, .y=4, .xplusy=0};
+    struct aux_magic01b m01b = {.y=4, .z=2, .yminusz=0};
+    if (auxsys_magic01(&m01a, &m01b) == -1) printf("auxsys_magic01 failed, err=%s\n", strerror(errno));
+    else printf("auxsys_magic01 succeeded, m01a.xplusy=%d, m01b.yminusz=%d\n", m01a.xplusy, m01b.yminusz);
+
     unsigned x;
 
     /* Open /dev/urandom, which should succeed */
