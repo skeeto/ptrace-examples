@@ -24,4 +24,7 @@ fread("/dev/urandom")[1], x=2685374535
 
 See also https://github.com/phucvin/test-virtualization/blob/main/ptrace02/notes.md
 
+TODO:
+- In xpledge.c, read and write to the process memory directly (e.g. using /proc/pid/mem) so it's faster
+
 [full]: http://nullprogram.com/blog/2018/06/23/
