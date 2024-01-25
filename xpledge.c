@@ -125,6 +125,7 @@ handle_aux_magic01(pid_t pid, struct user_regs_struct regs) {
     long arg2_raw = regs.rsi;
     struct aux_magic01a a;
     struct aux_magic01b b;
+    // TODO: Read and write to the process memory directly (e.g. using /proc/pid/mem) so it's faster
     getdata(pid, arg1_raw, &a, sizeof(a));
     getdata(pid, arg2_raw, &b, sizeof(b));
     if (a.y != b.y) return -EINVAL;
