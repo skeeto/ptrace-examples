@@ -4,6 +4,8 @@
 #define _GNU_SOURCE
 #include <unistd.h>
 
+#define SYS_blocked 999999999
+
 #define SYS_xpledge 10000
 
 #define XPLEDGE_RDWR  (1 << 0)

@@ -170,7 +170,7 @@ main(int argc, char **argv)
             FATAL("%s", strerror(errno));
 
         if (is_syscall_blocked(regs.orig_rax)) {
-            regs.orig_rax = -1; // set to invalid system call
+            regs.orig_rax = SYS_blocked; // set to invalid system call
             if (ptrace(PTRACE_SETREGS, pid, 0, &regs) == -1)
                 FATAL("%s", strerror(errno));
         }
@@ -198,7 +198,7 @@ main(int argc, char **argv)
 
         /* Special handling per system call (exit) */
         switch (regs.orig_rax) {
-            case -1:
+            case SYS_blocked:
                 regs.rax = -EPERM;
                 if (ptrace(PTRACE_SETREGS, pid, 0, &regs) == -1)
                     FATAL("%s", strerror(errno));
