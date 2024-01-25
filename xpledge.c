@@ -175,7 +175,14 @@ main(int argc, char **argv)
                 FATAL("%s", strerror(errno));
         }
 
+        /* Run system call and stop on exit */
+        if (ptrace(PTRACE_SYSCALL, pid, 0, 0) == -1)
+            FATAL("%s", strerror(errno));
+        if (waitpid(pid, 0, 0) == -1)
+            FATAL("%s", strerror(errno));
+
         /* Special handling per system call (entrance) */
+        fprintf(stdout, "Got syscall number=%llu\n", regs.orig_rax);
         switch (regs.orig_rax) {
             case SYS_exit:
                 exit(regs.rdi);
@@ -188,12 +195,6 @@ main(int argc, char **argv)
                 regs.rax = handle_aux_magic01(pid, regs);
                 break;
         }
-
-        /* Run system call and stop on exit */
-        if (ptrace(PTRACE_SYSCALL, pid, 0, 0) == -1)
-            FATAL("%s", strerror(errno));
-        if (waitpid(pid, 0, 0) == -1)
-            FATAL("%s", strerror(errno));
 
         /* Special handling per system call (exit) */
         switch (regs.orig_rax) {
